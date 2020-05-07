@@ -305,6 +305,8 @@ export class Master {
     store.dispatch(action);
     state = store.getState();
 
+    state.ctx.players = getCtxPlayers(metadata, gameID, this.clientInfo)
+
     this.subscribeCallback({
       state,
       action,
@@ -315,10 +317,6 @@ export class Master {
       const filteredState = {
         ...state,
         G: this.game.playerView(state.G, state.ctx, playerID),
-        ctx: {
-          ...state.ctx,
-          players: getCtxPlayers(metadata, gameID, this.clientInfo)
-        },
         deltalog: undefined,
         _undo: [],
         _redo: [],
@@ -424,13 +422,11 @@ export class Master {
       }
     }
 
+    state.ctx.players = getCtxPlayers(gameMetadata, gameID, this.clientInfo)
+
     const filteredState = {
       ...state,
       G: this.game.playerView(state.G, state.ctx, playerID),
-      ctx: {
-        ...state.ctx,
-        players: getCtxPlayers(gameMetadata, gameID, this.clientInfo)
-      },
       deltalog: undefined,
       _undo: [],
       _redo: [],

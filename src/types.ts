@@ -45,6 +45,7 @@ export interface ActivePlayers {
 }
 
 export interface Ctx {
+  players: any;
   numPlayers: number;
   playOrder: Array<PlayerID>;
   playOrderPos: number;
@@ -92,7 +93,7 @@ interface PluginContext<
   API extends any = any,
   Data extends any = any,
   G extends any = any
-> {
+  > {
   G: G;
   ctx: Ctx;
   game: Game;
@@ -104,7 +105,7 @@ export interface Plugin<
   API extends any = any,
   Data extends any = any,
   G extends any = any
-> {
+  > {
   name: string;
   noClient?: (context: PluginContext<API, Data, G>) => boolean;
   setup?: (setupCtx: { G: G; ctx: Ctx; game: Game<G, Ctx> }) => Data;
@@ -135,7 +136,7 @@ type MoveFn<G extends any = any, CtxWithPlugins extends Ctx = Ctx> = (
 export interface LongFormMove<
   G extends any = any,
   CtxWithPlugins extends Ctx = Ctx
-> {
+  > {
   move: MoveFn<G, CtxWithPlugins>;
   redact?: boolean;
   noLimit?: boolean;
@@ -150,14 +151,14 @@ export type Move<G extends any = any, CtxWithPlugins extends Ctx = Ctx> =
 export interface MoveMap<
   G extends any = any,
   CtxWithPlugins extends Ctx = Ctx
-> {
+  > {
   [moveName: string]: Move<G, CtxWithPlugins>;
 }
 
 export interface PhaseConfig<
   G extends any = any,
   CtxWithPlugins extends Ctx = Ctx
-> {
+  > {
   start?: boolean;
   next?: string;
   onBegin?: (G: G, ctx: CtxWithPlugins) => any;
@@ -177,7 +178,7 @@ export interface PhaseConfig<
 export interface StageConfig<
   G extends any = any,
   CtxWithPlugins extends Ctx = Ctx
-> {
+  > {
   moves?: MoveMap<G, CtxWithPlugins>;
   next?: string;
 }
@@ -185,14 +186,14 @@ export interface StageConfig<
 export interface StageMap<
   G extends any = any,
   CtxWithPlugins extends Ctx = Ctx
-> {
+  > {
   [stageName: string]: StageConfig<G, CtxWithPlugins>;
 }
 
 export interface TurnOrderConfig<
   G extends any = any,
   CtxWithPlugins extends Ctx = Ctx
-> {
+  > {
   first: (G: G, ctx: CtxWithPlugins) => number;
   next: (G: G, ctx: CtxWithPlugins) => number | undefined;
   playOrder?: (G: G, ctx: CtxWithPlugins) => PlayerID[];
@@ -201,7 +202,7 @@ export interface TurnOrderConfig<
 export interface TurnConfig<
   G extends any = any,
   CtxWithPlugins extends Ctx = Ctx
-> {
+  > {
   activePlayers?: object;
   moveLimit?: number;
   onBegin?: (G: G, ctx: CtxWithPlugins) => any;
