@@ -112,6 +112,43 @@ const stripCredentialsFromAction = (action: CredentialedActionShape.Any) => {
   return { ...action, payload };
 };
 
+const getCtxPlayers = (gameMetadata, gameID, clientInfo): any => {
+  // console.log("[getCtxPlayers] gameID", gameID, "clientInfo", clientInfo)
+
+  let hostID = 0
+
+  return Object.values(gameMetadata.players).reduce((allPlayers: any[], player: { name: string, id: number }) => {
+    if (player.name) {
+      let isConnected = false
+      let isHost = false
+
+      clientInfo.forEach((client) => {
+        if (client.gameID == gameID && client.playerID == player.id) {
+          isConnected = client.socket.connected
+        }
+      })
+
+      if (player.id == hostID) {
+        if (isConnected) {
+          isHost = true
+        } else {
+          hostID++
+        }
+      }
+
+      // console.log("[getCtxPlayers]", player.id, player.name, isConnected)
+
+      allPlayers.push({
+        id: player.id,
+        name: player.name,
+        isConnected,
+        isHost
+      })
+    }
+    return allPlayers
+  }, [])
+}
+
 export type AuthFn = (
   actionCredentials: string,
   playerMetadata: Server.PlayerMetadata
@@ -135,6 +172,7 @@ export class Master {
   storageAPI: StorageAPI.Sync | StorageAPI.Async;
   transportAPI;
   subscribeCallback: CallbackFn;
+  clientInfo: any;
   auth: null | AuthFn;
   shouldAuth: typeof doesGameRequireAuthentication;
 
@@ -142,13 +180,15 @@ export class Master {
     game: Game,
     storageAPI: StorageAPI.Sync | StorageAPI.Async,
     transportAPI,
+    clientInfo,
     auth?: AuthFn | boolean
   ) {
     this.game = ProcessGameConfig(game);
     this.storageAPI = storageAPI;
     this.transportAPI = transportAPI;
+    this.clientInfo = clientInfo
     this.auth = null;
-    this.subscribeCallback = () => {};
+    this.subscribeCallback = () => { };
     this.shouldAuth = () => false;
 
     if (auth === true) {
@@ -275,6 +315,10 @@ export class Master {
       const filteredState = {
         ...state,
         G: this.game.playerView(state.G, state.ctx, playerID),
+        ctx: {
+          ...state.ctx,
+          players: getCtxPlayers(metadata, gameID, this.clientInfo)
+        },
         deltalog: undefined,
         _undo: [],
         _redo: [],
@@ -383,6 +427,10 @@ export class Master {
     const filteredState = {
       ...state,
       G: this.game.playerView(state.G, state.ctx, playerID),
+      ctx: {
+        ...state.ctx,
+        players: getCtxPlayers(gameMetadata, gameID, this.clientInfo)
+      },
       deltalog: undefined,
       _undo: [],
       _redo: [],

@@ -102,6 +102,7 @@ export class SocketIO {
             game,
             app.context.db,
             TransportAPI(gameID, socket, this.clientInfo, this.roomInfo),
+            this.clientInfo,
             this.auth
           );
           await master.onUpdate(action, stateID, gameID, playerID);
@@ -129,6 +130,7 @@ export class SocketIO {
             game,
             app.context.db,
             TransportAPI(gameID, socket, this.clientInfo, this.roomInfo),
+            this.clientInfo,
             this.auth
           );
           await master.onSync(gameID, playerID, numPlayers);
