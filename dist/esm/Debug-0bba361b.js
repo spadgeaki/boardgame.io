@@ -1,6 +1,6 @@
-import { e as error, s as sync, M as MAKE_MOVE } from './reducer-2e5534d0.js';
+import { e as error, s as sync, M as MAKE_MOVE } from './reducer-fbf421a2.js';
 import { stringify, parse } from 'flatted';
-import { M as MCTSBot, R as RandomBot, S as Step } from './ai-096f1ee2.js';
+import { M as MCTSBot, R as RandomBot, S as Step } from './ai-6331d9a0.js';
 
 function noop() { }
 const identity = x => x;

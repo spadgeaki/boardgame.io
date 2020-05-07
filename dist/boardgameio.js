@@ -2004,6 +2004,7 @@ function Flow({ moves, phases, endIf, onEnd, turn, events, plugins, }) {
             playOrderPos: 0,
             phase: startingPhase,
             activePlayers: null,
+            players: []
         }),
         init: (state) => {
             return Process(state, [{ fn: StartGame }]);
@@ -9925,6 +9926,7 @@ class Master {
         // Update server's version of the store.
         store.dispatch(action);
         state = store.getState();
+        state.ctx.players = getCtxPlayers(metadata, gameID, this.clientInfo);
         this.subscribeCallback({
             state,
             action,
@@ -9934,10 +9936,6 @@ class Master {
             const filteredState = {
                 ...state,
                 G: this.game.playerView(state.G, state.ctx, playerID),
-                ctx: {
-                    ...state.ctx,
-                    players: getCtxPlayers(metadata, gameID, this.clientInfo)
-                },
                 deltalog: undefined,
                 _undo: [],
                 _redo: [],
@@ -10026,13 +10024,10 @@ class Master {
                 await this.storageAPI.setState(key, state);
             }
         }
+        state.ctx.players = getCtxPlayers(gameMetadata, gameID, this.clientInfo);
         const filteredState = {
             ...state,
             G: this.game.playerView(state.G, state.ctx, playerID),
-            ctx: {
-                ...state.ctx,
-                players: getCtxPlayers(gameMetadata, gameID, this.clientInfo)
-            },
             deltalog: undefined,
             _undo: [],
             _redo: [],

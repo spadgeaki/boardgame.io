@@ -830,6 +830,7 @@ export function Flow({
       playOrderPos: 0,
       phase: startingPhase,
       activePlayers: null,
+      players: []
     }),
     init: (state: State): State => {
       return Process(state, [{ fn: StartGame }]);

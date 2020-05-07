@@ -1,6 +1,4 @@
-'use strict';
-
-var reducer = require('./reducer-74f299e3.js');
+import { _ as _createClass, a as _classCallCheck, b as _defineProperty, m as makeMove, g as gameEvent, c as alea, d as _inherits, f as _createSuper, C as CreateGameReducer, h as _createForOfIteratorHelper, i as _typeof } from './reducer-fbf421a2.js';
 
 /**
  * Base class that bots can extend.
@@ -13,9 +11,9 @@ var Bot = /*#__PURE__*/function () {
     var enumerate = _ref.enumerate,
         seed = _ref.seed;
 
-    reducer._classCallCheck(this, Bot);
+    _classCallCheck(this, Bot);
 
-    reducer._defineProperty(this, "enumerate", function (G, ctx, playerID) {
+    _defineProperty(this, "enumerate", function (G, ctx, playerID) {
       var actions = _this.enumerateFn(G, ctx, playerID);
 
       return actions.map(function (a) {
@@ -24,11 +22,11 @@ var Bot = /*#__PURE__*/function () {
         }
 
         if (a.move !== undefined) {
-          return reducer.makeMove(a.move, a.args, playerID);
+          return makeMove(a.move, a.args, playerID);
         }
 
         if (a.event !== undefined) {
-          return reducer.gameEvent(a.event, a.args, playerID);
+          return gameEvent(a.event, a.args, playerID);
         }
       });
     });
@@ -39,7 +37,7 @@ var Bot = /*#__PURE__*/function () {
     this._opts = {};
   }
 
-  reducer._createClass(Bot, [{
+  _createClass(Bot, [{
     key: "addOpt",
     value: function addOpt(_ref2) {
       var key = _ref2.key,
@@ -76,11 +74,11 @@ var Bot = /*#__PURE__*/function () {
         var r = null;
 
         if (this.prngstate) {
-          r = new reducer.alea('', {
+          r = new alea('', {
             state: this.prngstate
           });
         } else {
-          r = new reducer.alea(this.seed, {
+          r = new alea(this.seed, {
             state: true
           });
         }
@@ -119,9 +117,9 @@ var CHUNK_SIZE = 25;
  */
 
 var MCTSBot = /*#__PURE__*/function (_Bot) {
-  reducer._inherits(MCTSBot, _Bot);
+  _inherits(MCTSBot, _Bot);
 
-  var _super = reducer._createSuper(MCTSBot);
+  var _super = _createSuper(MCTSBot);
 
   function MCTSBot(_ref) {
     var _this;
@@ -134,7 +132,7 @@ var MCTSBot = /*#__PURE__*/function (_Bot) {
         playoutDepth = _ref.playoutDepth,
         iterationCallback = _ref.iterationCallback;
 
-    reducer._classCallCheck(this, MCTSBot);
+    _classCallCheck(this, MCTSBot);
 
     _this = _super.call(this, {
       enumerate: enumerate,
@@ -151,7 +149,7 @@ var MCTSBot = /*#__PURE__*/function (_Bot) {
 
     _this.iterationCallback = iterationCallback || function () {};
 
-    _this.reducer = reducer.CreateGameReducer({
+    _this.reducer = CreateGameReducer({
       game: game
     });
     _this.iterations = iterations;
@@ -183,7 +181,7 @@ var MCTSBot = /*#__PURE__*/function (_Bot) {
     return _this;
   }
 
-  reducer._createClass(MCTSBot, [{
+  _createClass(MCTSBot, [{
     key: "createNode",
     value: function createNode(_ref2) {
       var state = _ref2.state,
@@ -243,7 +241,7 @@ var MCTSBot = /*#__PURE__*/function (_Bot) {
       var selectedChild = null;
       var best = 0.0;
 
-      var _iterator = reducer._createForOfIteratorHelper(node.children),
+      var _iterator = _createForOfIteratorHelper(node.children),
           _step;
 
       try {
@@ -347,7 +345,7 @@ var MCTSBot = /*#__PURE__*/function (_Bot) {
       for (var i = 0; i < playoutDepth && state.ctx.gameover === undefined; i++) {
         var _ret = _loop();
 
-        if (reducer._typeof(_ret) === "object") return _ret.v;
+        if (_typeof(_ret) === "object") return _ret.v;
       }
 
       return state.ctx.gameover;
@@ -392,7 +390,7 @@ var MCTSBot = /*#__PURE__*/function (_Bot) {
       var getResult = function getResult() {
         var selectedChild = null;
 
-        var _iterator2 = reducer._createForOfIteratorHelper(root.children),
+        var _iterator2 = _createForOfIteratorHelper(root.children),
             _step2;
 
         try {
@@ -470,17 +468,17 @@ var MCTSBot = /*#__PURE__*/function (_Bot) {
  */
 
 var RandomBot = /*#__PURE__*/function (_Bot) {
-  reducer._inherits(RandomBot, _Bot);
+  _inherits(RandomBot, _Bot);
 
-  var _super = reducer._createSuper(RandomBot);
+  var _super = _createSuper(RandomBot);
 
   function RandomBot() {
-    reducer._classCallCheck(this, RandomBot);
+    _classCallCheck(this, RandomBot);
 
     return _super.apply(this, arguments);
   }
 
-  reducer._createClass(RandomBot, [{
+  _createClass(RandomBot, [{
     key: "play",
     value: function play(_ref, playerID) {
       var G = _ref.G,
@@ -542,7 +540,7 @@ async function Simulate(_ref) {
       state = _ref.state,
       depth = _ref.depth;
   if (depth === undefined) depth = 10000;
-  var reducer$1 = reducer.CreateGameReducer({
+  var reducer = CreateGameReducer({
     game: game,
     numPlayers: state.ctx.numPlayers
   });
@@ -564,7 +562,7 @@ async function Simulate(_ref) {
     }
 
     metadata = t.metadata;
-    state = reducer$1(state, t.action);
+    state = reducer(state, t.action);
     iter++;
   }
 
@@ -574,8 +572,4 @@ async function Simulate(_ref) {
   };
 }
 
-exports.Bot = Bot;
-exports.MCTSBot = MCTSBot;
-exports.RandomBot = RandomBot;
-exports.Simulate = Simulate;
-exports.Step = Step;
+export { Bot as B, MCTSBot as M, RandomBot as R, Step as S, Simulate as a };

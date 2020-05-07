@@ -39,6 +39,7 @@ export interface ActivePlayers {
     [playerID: string]: StageName;
 }
 export interface Ctx {
+    players: any;
     numPlayers: number;
     playOrder: Array<PlayerID>;
     playOrderPos: number;

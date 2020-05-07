@@ -1,8 +1,4 @@
-'use strict';
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var produce = _interopDefault(require('immer'));
+import produce from 'immer';
 
 function _typeof(obj) {
   "@babel/helpers - typeof";
@@ -2029,6 +2025,7 @@ function Flow({ moves, phases, endIf, onEnd, turn, events, plugins, }) {
             playOrderPos: 0,
             phase: startingPhase,
             activePlayers: null,
+            players: []
         }),
         init: (state) => {
             return Process(state, [{ fn: StartGame }]);
@@ -2333,41 +2330,4 @@ function CreateGameReducer({ game, isClient, }) {
     };
 }
 
-exports.ActionCreators = ActionCreators;
-exports.ActivePlayers = ActivePlayers;
-exports.CreateGameReducer = CreateGameReducer;
-exports.Enhance = Enhance;
-exports.EnhanceCtx = EnhanceCtx;
-exports.Flush = Flush;
-exports.GAME_EVENT = GAME_EVENT;
-exports.INVALID_MOVE = INVALID_MOVE;
-exports.MAKE_MOVE = MAKE_MOVE;
-exports.ProcessGameConfig = ProcessGameConfig;
-exports.REDO = REDO;
-exports.RESET = RESET;
-exports.SYNC = SYNC;
-exports.Setup = Setup;
-exports.Stage = Stage;
-exports.TurnOrder = TurnOrder;
-exports.UNDO = UNDO;
-exports.UPDATE = UPDATE;
-exports._assertThisInitialized = _assertThisInitialized;
-exports._classCallCheck = _classCallCheck;
-exports._createClass = _createClass;
-exports._createForOfIteratorHelper = _createForOfIteratorHelper;
-exports._createSuper = _createSuper;
-exports._defineProperty = _defineProperty;
-exports._inherits = _inherits;
-exports._objectSpread2 = _objectSpread2;
-exports._objectWithoutProperties = _objectWithoutProperties;
-exports._toConsumableArray = _toConsumableArray;
-exports._typeof = _typeof;
-exports.alea = alea;
-exports.error = error;
-exports.gameEvent = gameEvent;
-exports.makeMove = makeMove;
-exports.redo = redo;
-exports.reset = reset;
-exports.sync = sync;
-exports.undo = undo;
-exports.update = update;
+export { ActionCreators as A, CreateGameReducer as C, Enhance as E, Flush as F, GAME_EVENT as G, INVALID_MOVE as I, MAKE_MOVE as M, ProcessGameConfig as P, RESET as R, Setup as S, TurnOrder as T, UPDATE as U, _createClass as _, _classCallCheck as a, _defineProperty as b, alea as c, _inherits as d, error as e, _createSuper as f, gameEvent as g, _createForOfIteratorHelper as h, _typeof as i, EnhanceCtx as j, _objectSpread2 as k, redo as l, makeMove as m, SYNC as n, _toConsumableArray as o, ActivePlayers as p, Stage as q, reset as r, sync as s, _assertThisInitialized as t, undo as u, update as v, UNDO as w, REDO as x, _objectWithoutProperties as y };

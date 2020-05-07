@@ -1,9 +1,7 @@
-'use strict';
-
-var reducer = require('./reducer-74f299e3.js');
-var redux = require('redux');
-var initialize = require('./initialize-79151280.js');
-var base = require('./base-bdd9c13b.js');
+import { P as ProcessGameConfig, e as error, C as CreateGameReducer, w as UNDO, x as REDO, M as MAKE_MOVE } from './reducer-fbf421a2.js';
+import { createStore } from 'redux';
+import { I as InitializeGame } from './initialize-d5f56b08.js';
+import { T as Type } from './base-c99f5be2.js';
 
 /*
  * Copyright 2018 The boardgame.io Authors
@@ -18,7 +16,7 @@ const getPlayerMetadata = (gameMetadata, playerID) => {
     }
 };
 function IsSynchronous(storageAPI) {
-    return storageAPI.type() === base.Type.SYNC;
+    return storageAPI.type() === Type.SYNC;
 }
 /**
  * Redact the log.
@@ -122,7 +120,7 @@ const getCtxPlayers = (gameMetadata, gameID, clientInfo) => {
  */
 class Master {
     constructor(game, storageAPI, transportAPI, clientInfo, auth) {
-        this.game = reducer.ProcessGameConfig(game);
+        this.game = ProcessGameConfig(game);
         this.storageAPI = storageAPI;
         this.transportAPI = transportAPI;
         this.clientInfo = clientInfo;
@@ -181,45 +179,46 @@ class Master {
         }
         state = result.state;
         if (state === undefined) {
-            reducer.error(`game not found, gameID=[${key}]`);
+            error(`game not found, gameID=[${key}]`);
             return { error: 'game not found' };
         }
         if (state.ctx.gameover !== undefined) {
-            reducer.error(`game over - gameID=[${key}]`);
+            error(`game over - gameID=[${key}]`);
             return;
         }
-        const reducer$1 = reducer.CreateGameReducer({
+        const reducer = CreateGameReducer({
             game: this.game,
         });
-        const store = redux.createStore(reducer$1, state);
+        const store = createStore(reducer, state);
         // Only allow UNDO / REDO if there is exactly one player
         // that can make moves right now and the person doing the
         // action is that player.
-        if (action.type == reducer.UNDO || action.type == reducer.REDO) {
+        if (action.type == UNDO || action.type == REDO) {
             if (state.ctx.currentPlayer !== playerID ||
                 state.ctx.activePlayers !== null) {
-                reducer.error(`playerID=[${playerID}] cannot undo / redo right now`);
+                error(`playerID=[${playerID}] cannot undo / redo right now`);
                 return;
             }
         }
         // Check whether the player is active.
         if (!this.game.flow.isPlayerActive(state.G, state.ctx, playerID)) {
-            reducer.error(`player not active - playerID=[${playerID}]`);
+            error(`player not active - playerID=[${playerID}]`);
             return;
         }
         // Check whether the player is allowed to make the move.
-        if (action.type == reducer.MAKE_MOVE &&
+        if (action.type == MAKE_MOVE &&
             !this.game.flow.getMove(state.ctx, action.payload.type, playerID)) {
-            reducer.error(`move not processed - canPlayerMakeMove=false, playerID=[${playerID}]`);
+            error(`move not processed - canPlayerMakeMove=false, playerID=[${playerID}]`);
             return;
         }
         if (state._stateID !== stateID) {
-            reducer.error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
+            error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
             return;
         }
         // Update server's version of the store.
         store.dispatch(action);
         state = store.getState();
+        state.ctx.players = getCtxPlayers(metadata, gameID, this.clientInfo);
         this.subscribeCallback({
             state,
             action,
@@ -229,10 +228,6 @@ class Master {
             const filteredState = {
                 ...state,
                 G: this.game.playerView(state.G, state.ctx, playerID),
-                ctx: {
-                    ...state.ctx,
-                    players: getCtxPlayers(metadata, gameID, this.clientInfo)
-                },
                 deltalog: undefined,
                 _undo: [],
                 _redo: [],
@@ -309,7 +304,7 @@ class Master {
         // If the game doesn't exist, then create one on demand.
         // TODO: Move this out of the sync call.
         if (state === undefined) {
-            initialState = state = initialize.InitializeGame({ game: this.game, numPlayers });
+            initialState = state = InitializeGame({ game: this.game, numPlayers });
             this.subscribeCallback({
                 state,
                 gameID,
@@ -321,13 +316,10 @@ class Master {
                 await this.storageAPI.setState(key, state);
             }
         }
+        state.ctx.players = getCtxPlayers(gameMetadata, gameID, this.clientInfo);
         const filteredState = {
             ...state,
             G: this.game.playerView(state.G, state.ctx, playerID),
-            ctx: {
-                ...state.ctx,
-                players: getCtxPlayers(gameMetadata, gameID, this.clientInfo)
-            },
             deltalog: undefined,
             _undo: [],
             _redo: [],
@@ -348,4 +340,4 @@ class Master {
     }
 }
 
-exports.Master = Master;
+export { Master as M };

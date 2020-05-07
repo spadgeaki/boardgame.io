@@ -1,4 +1,4 @@
-import { P as ProcessGameConfig, S as Setup, E as Enhance, j as EnhanceCtx, F as Flush } from './reducer-2e5534d0.js';
+import { P as ProcessGameConfig, S as Setup, E as Enhance, j as EnhanceCtx, F as Flush } from './reducer-fbf421a2.js';
 
 /*
  * Copyright 2020 The boardgame.io Authors

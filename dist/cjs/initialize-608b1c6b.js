@@ -1,6 +1,6 @@
 'use strict';
 
-var reducer = require('./reducer-74f299e3.js');
+var reducer = require('./reducer-b4f65523.js');
 
 /*
  * Copyright 2020 The boardgame.io Authors

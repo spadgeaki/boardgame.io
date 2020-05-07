@@ -13,6 +13,7 @@ export declare function SetActivePlayersEvent(state: State, _playerID: PlayerID,
             _activePlayersNumMoves?: Record<string, number>;
         }[];
         _nextActivePlayers: ActivePlayersArg;
+        players: any;
         numPlayers: number;
         playOrder: string[];
         playOrderPos: number;
@@ -55,6 +56,7 @@ export declare function SetActivePlayers(ctx: Ctx, arg: ActivePlayersArg | Playe
         _activePlayersNumMoves?: Record<string, number>;
     }[];
     _nextActivePlayers: ActivePlayersArg;
+    players: any;
     numPlayers: number;
     playOrder: string[];
     playOrderPos: number;
@@ -84,6 +86,7 @@ export declare function UpdateActivePlayersOnceEmpty(ctx: Ctx): {
         _activePlayersMoveLimit?: Record<string, number>;
         _activePlayersNumMoves?: Record<string, number>;
     }[];
+    players: any;
     numPlayers: number;
     playOrder: string[];
     playOrderPos: number;
