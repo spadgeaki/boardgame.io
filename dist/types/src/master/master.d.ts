@@ -82,5 +82,10 @@ export declare class Master {
      * Returns the latest game state and the entire log.
      */
     onSync(gameID: string, playerID: string, numPlayers: number): Promise<void>;
+    /**
+     * Called when the client disconnects.
+     * Returns the latest game state and the entire log.
+     */
+    onDisconnect(gameID: string, numPlayers: number): Promise<void>;
 }
 export {};

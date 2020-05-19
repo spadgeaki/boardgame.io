@@ -11,8 +11,8 @@ import IO from 'koa-socket-2';
 import { ServerOptions as SocketOptions } from 'socket.io';
 import { ServerOptions as HttpsOptions } from 'https';
 
-const PING_TIMEOUT = 20 * 1e3;
-const PING_INTERVAL = 10 * 1e3;
+const PING_TIMEOUT = 10000;
+const PING_INTERVAL = 10000;
 
 /**
  * API that's exposed by SocketIO for the Master to send
@@ -136,11 +136,22 @@ export class SocketIO {
           await master.onSync(gameID, playerID, numPlayers);
         });
 
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async () => {
           if (this.clientInfo.has(socket.id)) {
             const { gameID } = this.clientInfo.get(socket.id);
             this.roomInfo.get(gameID).delete(socket.id);
             this.clientInfo.delete(socket.id);
+
+
+            const master = new Master(
+              game,
+              app.context.db,
+              TransportAPI(gameID, socket, this.clientInfo, this.roomInfo),
+              this.clientInfo,
+              this.auth
+            );
+
+            await master.onDisconnect(gameID, 64);
           }
         });
       });

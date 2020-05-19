@@ -25,6 +25,13 @@ import {
 } from '../types';
 import * as StorageAPI from '../server/db/base';
 
+interface CtxPlayer {
+  id: number | string
+  name: string | null
+  isConnected: boolean
+  isHost: boolean
+}
+
 export const getPlayerMetadata = (
   gameMetadata: Server.GameMetadata,
   playerID: PlayerID
@@ -115,12 +122,9 @@ const stripCredentialsFromAction = (action: CredentialedActionShape.Any) => {
 const getCtxPlayers = (gameMetadata, gameID, clientInfo): any => {
   // console.log("[getCtxPlayers] gameID", gameID, "clientInfo", clientInfo)
 
-  let hostID = 0
-
-  return Object.values(gameMetadata.players).reduce((allPlayers: any[], player: { name: string, id: number }) => {
+  let allPlayers = Object.values(gameMetadata.players).reduce((allPlayers: CtxPlayer[], player: { name: string, id: number }) => {
     if (player.name) {
       let isConnected = false
-      let isHost = false
 
       clientInfo.forEach((client) => {
         if (client.gameID == gameID && client.playerID == player.id) {
@@ -128,25 +132,26 @@ const getCtxPlayers = (gameMetadata, gameID, clientInfo): any => {
         }
       })
 
-      if (player.id == hostID) {
-        if (isConnected) {
-          isHost = true
-        } else {
-          hostID++
-        }
-      }
-
       // console.log("[getCtxPlayers]", player.id, player.name, isConnected)
 
       allPlayers.push({
         id: player.id,
         name: player.name,
         isConnected,
-        isHost
+        isHost: false,
       })
     }
     return allPlayers
-  }, [])
+  }, [] as CtxPlayer[])
+
+  for (let player of allPlayers as CtxPlayer[]) {
+    if (player.name && player.isConnected) {
+      player.isHost = true
+      break;
+    }
+  }
+
+  return allPlayers
 }
 
 export type AuthFn = (
@@ -445,6 +450,93 @@ export class Master {
       playerID,
       type: 'sync',
       args: [gameID, syncInfo],
+    });
+
+    return;
+  }
+
+
+  /**
+   * Called when the client disconnects.
+   * Returns the latest game state and the entire log.
+   */
+  async onDisconnect(gameID: string, numPlayers: number) {
+    const key = gameID;
+
+    let state: State;
+    let initialState: State;
+    let log: LogEntry[];
+    let gameMetadata: Server.GameMetadata;
+    let filteredMetadata: FilteredMetadata;
+    let result: StorageAPI.FetchResult<{
+      state: true;
+      metadata: true;
+      log: true;
+      initialState: true;
+    }>;
+
+    if (IsSynchronous(this.storageAPI)) {
+      result = this.storageAPI.fetch(key, {
+        state: true,
+        metadata: true,
+        log: true,
+        initialState: true,
+      });
+    } else {
+      result = await this.storageAPI.fetch(key, {
+        state: true,
+        metadata: true,
+        log: true,
+        initialState: true,
+      });
+    }
+
+    state = result.state;
+    initialState = result.initialState;
+    log = result.log;
+    gameMetadata = result.metadata;
+
+    if (gameMetadata) {
+      filteredMetadata = Object.values(gameMetadata.players).map(player => {
+        const { credentials, ...filteredData } = player;
+        return filteredData;
+      });
+    }
+
+    // If the game doesn't exist, then create one on demand.
+    // TODO: Move this out of the sync call.
+    if (state === undefined) {
+      initialState = state = InitializeGame({ game: this.game, numPlayers });
+
+      this.subscribeCallback({
+        state,
+        gameID,
+      });
+
+      if (IsSynchronous(this.storageAPI)) {
+        this.storageAPI.setState(key, state);
+      } else {
+        await this.storageAPI.setState(key, state);
+      }
+    }
+
+    state.ctx.players = getCtxPlayers(gameMetadata, gameID, this.clientInfo)
+
+    this.transportAPI.sendAll((playerID: string) => {
+      const filteredState = {
+        ...state,
+        G: this.game.playerView(state.G, state.ctx, playerID),
+        deltalog: undefined,
+        _undo: [],
+        _redo: [],
+      };
+
+      const log = redactLog(state.deltalog, playerID);
+
+      return {
+        type: 'update',
+        args: [gameID, filteredState, log],
+      };
     });
 
     return;

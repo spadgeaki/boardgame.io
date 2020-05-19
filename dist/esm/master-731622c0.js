@@ -1,9 +1,7 @@
-'use strict';
-
-var reducer = require('./reducer-b4f65523.js');
-var redux = require('redux');
-var initialize = require('./initialize-608b1c6b.js');
-var base = require('./base-bdd9c13b.js');
+import { P as ProcessGameConfig, e as error, C as CreateGameReducer, w as UNDO, x as REDO, M as MAKE_MOVE } from './reducer-fbf421a2.js';
+import { createStore } from 'redux';
+import { I as InitializeGame } from './initialize-d5f56b08.js';
+import { T as Type } from './base-c99f5be2.js';
 
 /*
  * Copyright 2018 The boardgame.io Authors
@@ -18,7 +16,7 @@ const getPlayerMetadata = (gameMetadata, playerID) => {
     }
 };
 function IsSynchronous(storageAPI) {
-    return storageAPI.type() === base.Type.SYNC;
+    return storageAPI.type() === Type.SYNC;
 }
 /**
  * Redact the log.
@@ -84,34 +82,31 @@ const stripCredentialsFromAction = (action) => {
 };
 const getCtxPlayers = (gameMetadata, gameID, clientInfo) => {
     // console.log("[getCtxPlayers] gameID", gameID, "clientInfo", clientInfo)
-    let hostID = 0;
-    return Object.values(gameMetadata.players).reduce((allPlayers, player) => {
+    let allPlayers = Object.values(gameMetadata.players).reduce((allPlayers, player) => {
         if (player.name) {
             let isConnected = false;
-            let isHost = false;
             clientInfo.forEach((client) => {
                 if (client.gameID == gameID && client.playerID == player.id) {
                     isConnected = client.socket.connected;
                 }
             });
-            if (player.id == hostID) {
-                if (isConnected) {
-                    isHost = true;
-                }
-                else {
-                    hostID++;
-                }
-            }
             // console.log("[getCtxPlayers]", player.id, player.name, isConnected)
             allPlayers.push({
                 id: player.id,
                 name: player.name,
                 isConnected,
-                isHost
+                isHost: false,
             });
         }
         return allPlayers;
     }, []);
+    for (let player of allPlayers) {
+        if (player.name && player.isConnected) {
+            player.isHost = true;
+            break;
+        }
+    }
+    return allPlayers;
 };
 /**
  * Master
@@ -122,7 +117,7 @@ const getCtxPlayers = (gameMetadata, gameID, clientInfo) => {
  */
 class Master {
     constructor(game, storageAPI, transportAPI, clientInfo, auth) {
-        this.game = reducer.ProcessGameConfig(game);
+        this.game = ProcessGameConfig(game);
         this.storageAPI = storageAPI;
         this.transportAPI = transportAPI;
         this.clientInfo = clientInfo;
@@ -181,40 +176,40 @@ class Master {
         }
         state = result.state;
         if (state === undefined) {
-            reducer.error(`game not found, gameID=[${key}]`);
+            error(`game not found, gameID=[${key}]`);
             return { error: 'game not found' };
         }
         if (state.ctx.gameover !== undefined) {
-            reducer.error(`game over - gameID=[${key}]`);
+            error(`game over - gameID=[${key}]`);
             return;
         }
-        const reducer$1 = reducer.CreateGameReducer({
+        const reducer = CreateGameReducer({
             game: this.game,
         });
-        const store = redux.createStore(reducer$1, state);
+        const store = createStore(reducer, state);
         // Only allow UNDO / REDO if there is exactly one player
         // that can make moves right now and the person doing the
         // action is that player.
-        if (action.type == reducer.UNDO || action.type == reducer.REDO) {
+        if (action.type == UNDO || action.type == REDO) {
             if (state.ctx.currentPlayer !== playerID ||
                 state.ctx.activePlayers !== null) {
-                reducer.error(`playerID=[${playerID}] cannot undo / redo right now`);
+                error(`playerID=[${playerID}] cannot undo / redo right now`);
                 return;
             }
         }
         // Check whether the player is active.
         if (!this.game.flow.isPlayerActive(state.G, state.ctx, playerID)) {
-            reducer.error(`player not active - playerID=[${playerID}]`);
+            error(`player not active - playerID=[${playerID}]`);
             return;
         }
         // Check whether the player is allowed to make the move.
-        if (action.type == reducer.MAKE_MOVE &&
+        if (action.type == MAKE_MOVE &&
             !this.game.flow.getMove(state.ctx, action.payload.type, playerID)) {
-            reducer.error(`move not processed - canPlayerMakeMove=false, playerID=[${playerID}]`);
+            error(`move not processed - canPlayerMakeMove=false, playerID=[${playerID}]`);
             return;
         }
         if (state._stateID !== stateID) {
-            reducer.error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
+            error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
             return;
         }
         // Update server's version of the store.
@@ -306,7 +301,7 @@ class Master {
         // If the game doesn't exist, then create one on demand.
         // TODO: Move this out of the sync call.
         if (state === undefined) {
-            initialState = state = initialize.InitializeGame({ game: this.game, numPlayers });
+            initialState = state = InitializeGame({ game: this.game, numPlayers });
             this.subscribeCallback({
                 state,
                 gameID,
@@ -340,6 +335,76 @@ class Master {
         });
         return;
     }
+    /**
+     * Called when the client disconnects.
+     * Returns the latest game state and the entire log.
+     */
+    async onDisconnect(gameID, numPlayers) {
+        const key = gameID;
+        let state;
+        let initialState;
+        let log;
+        let gameMetadata;
+        let filteredMetadata;
+        let result;
+        if (IsSynchronous(this.storageAPI)) {
+            result = this.storageAPI.fetch(key, {
+                state: true,
+                metadata: true,
+                log: true,
+                initialState: true,
+            });
+        }
+        else {
+            result = await this.storageAPI.fetch(key, {
+                state: true,
+                metadata: true,
+                log: true,
+                initialState: true,
+            });
+        }
+        state = result.state;
+        initialState = result.initialState;
+        log = result.log;
+        gameMetadata = result.metadata;
+        if (gameMetadata) {
+            filteredMetadata = Object.values(gameMetadata.players).map(player => {
+                const { credentials, ...filteredData } = player;
+                return filteredData;
+            });
+        }
+        // If the game doesn't exist, then create one on demand.
+        // TODO: Move this out of the sync call.
+        if (state === undefined) {
+            initialState = state = InitializeGame({ game: this.game, numPlayers });
+            this.subscribeCallback({
+                state,
+                gameID,
+            });
+            if (IsSynchronous(this.storageAPI)) {
+                this.storageAPI.setState(key, state);
+            }
+            else {
+                await this.storageAPI.setState(key, state);
+            }
+        }
+        state.ctx.players = getCtxPlayers(gameMetadata, gameID, this.clientInfo);
+        this.transportAPI.sendAll((playerID) => {
+            const filteredState = {
+                ...state,
+                G: this.game.playerView(state.G, state.ctx, playerID),
+                deltalog: undefined,
+                _undo: [],
+                _redo: [],
+            };
+            const log = redactLog(state.deltalog, playerID);
+            return {
+                type: 'update',
+                args: [gameID, filteredState, log],
+            };
+        });
+        return;
+    }
 }
 
-exports.Master = Master;
+export { Master as M };

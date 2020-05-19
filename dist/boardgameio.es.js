@@ -9784,34 +9784,31 @@ const stripCredentialsFromAction = (action) => {
 };
 const getCtxPlayers = (gameMetadata, gameID, clientInfo) => {
     // console.log("[getCtxPlayers] gameID", gameID, "clientInfo", clientInfo)
-    let hostID = 0;
-    return Object.values(gameMetadata.players).reduce((allPlayers, player) => {
+    let allPlayers = Object.values(gameMetadata.players).reduce((allPlayers, player) => {
         if (player.name) {
             let isConnected = false;
-            let isHost = false;
             clientInfo.forEach((client) => {
                 if (client.gameID == gameID && client.playerID == player.id) {
                     isConnected = client.socket.connected;
                 }
             });
-            if (player.id == hostID) {
-                if (isConnected) {
-                    isHost = true;
-                }
-                else {
-                    hostID++;
-                }
-            }
             // console.log("[getCtxPlayers]", player.id, player.name, isConnected)
             allPlayers.push({
                 id: player.id,
                 name: player.name,
                 isConnected,
-                isHost
+                isHost: false,
             });
         }
         return allPlayers;
     }, []);
+    for (let player of allPlayers) {
+        if (player.name && player.isConnected) {
+            player.isHost = true;
+            break;
+        }
+    }
+    return allPlayers;
 };
 /**
  * Master
@@ -10037,6 +10034,76 @@ class Master {
             playerID,
             type: 'sync',
             args: [gameID, syncInfo],
+        });
+        return;
+    }
+    /**
+     * Called when the client disconnects.
+     * Returns the latest game state and the entire log.
+     */
+    async onDisconnect(gameID, numPlayers) {
+        const key = gameID;
+        let state;
+        let initialState;
+        let log;
+        let gameMetadata;
+        let filteredMetadata;
+        let result;
+        if (IsSynchronous(this.storageAPI)) {
+            result = this.storageAPI.fetch(key, {
+                state: true,
+                metadata: true,
+                log: true,
+                initialState: true,
+            });
+        }
+        else {
+            result = await this.storageAPI.fetch(key, {
+                state: true,
+                metadata: true,
+                log: true,
+                initialState: true,
+            });
+        }
+        state = result.state;
+        initialState = result.initialState;
+        log = result.log;
+        gameMetadata = result.metadata;
+        if (gameMetadata) {
+            filteredMetadata = Object.values(gameMetadata.players).map(player => {
+                const { credentials, ...filteredData } = player;
+                return filteredData;
+            });
+        }
+        // If the game doesn't exist, then create one on demand.
+        // TODO: Move this out of the sync call.
+        if (state === undefined) {
+            initialState = state = InitializeGame({ game: this.game, numPlayers });
+            this.subscribeCallback({
+                state,
+                gameID,
+            });
+            if (IsSynchronous(this.storageAPI)) {
+                this.storageAPI.setState(key, state);
+            }
+            else {
+                await this.storageAPI.setState(key, state);
+            }
+        }
+        state.ctx.players = getCtxPlayers(gameMetadata, gameID, this.clientInfo);
+        this.transportAPI.sendAll((playerID) => {
+            const filteredState = {
+                ...state,
+                G: this.game.playerView(state.G, state.ctx, playerID),
+                deltalog: undefined,
+                _undo: [],
+                _redo: [],
+            };
+            const log = redactLog(state.deltalog, playerID);
+            return {
+                type: 'update',
+                args: [gameID, filteredState, log],
+            };
         });
         return;
     }
