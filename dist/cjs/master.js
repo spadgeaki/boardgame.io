@@ -7,7 +7,7 @@ require('redux');
 require('immer');
 require('./initialize-608b1c6b.js');
 require('./base-bdd9c13b.js');
-var master = require('./master-1bff20b4.js');
+var master = require('./master-b02d3587.js');
 
 
 

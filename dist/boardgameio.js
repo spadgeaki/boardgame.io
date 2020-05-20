@@ -9809,7 +9809,7 @@ const getCtxPlayers = (gameMetadata, gameID, clientInfo) => {
         return allPlayers;
     }, []);
     for (let player of allPlayers) {
-        if (player.name && player.isConnected) {
+        if (player.name) {
             player.isHost = true;
             break;
         }
