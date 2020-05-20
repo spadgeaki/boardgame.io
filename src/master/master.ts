@@ -145,7 +145,7 @@ const getCtxPlayers = (gameMetadata, gameID, clientInfo): any => {
   }, [] as CtxPlayer[])
 
   for (let player of allPlayers as CtxPlayer[]) {
-    if (player.name && player.isConnected) {
+    if (player.name) {
       player.isHost = true
       break;
     }
