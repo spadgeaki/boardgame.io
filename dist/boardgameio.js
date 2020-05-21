@@ -9206,6 +9206,11 @@ var _ClientImpl = /*#__PURE__*/function () {
       return this.initialState;
     }
   }, {
+    key: "getLatency",
+    value: function getLatency() {
+      return this.transport.latency;
+    }
+  }, {
     key: "getState",
     value: function getState() {
       var state = this.store.getState();
@@ -10466,7 +10471,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
     _this.socket = socket;
     _this.socketOpts = socketOpts;
     _this.isConnected = false;
-    _this.heartbeat = null;
+    _this.latency = -1;
 
     _this.callback = function () {};
 
@@ -10529,6 +10534,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
 
       this.socket.on('sync', function (gameID, syncInfo) {
         if (gameID == _this2.gameID) {
+          console.log('client/transport/socket.io sync');
           var action = sync(syncInfo);
 
           _this2.gameMetadataCallback(syncInfo.filteredMetadata);
@@ -10537,21 +10543,15 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
         }
       }); // Initial sync to get game state.
 
-      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers); // Server pings all clients every 10 seconds
-      // we save the date and client check every second
-
-      this.socket.on('heartbeat', function (gameID) {
-        if (gameID == _this2.gameID) {
-          _this2.heartbeat = new Date().getTime();
-        }
-      }); // ping - client sends to server
+      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers); // ping - client sends to server
 
       this.socket.on('ping', function () {
         console.log('client/transport/socket.io ping');
       }); // pong is server response with latency
 
       this.socket.on('pong', function (latency) {
-        console.log('client/transport/socket.io ping', latency);
+        console.log('client/transport/socket.io pong', latency);
+        _this2.latency = latency;
       }); // Error catch
 
       this.socket.on('error', function (e) {

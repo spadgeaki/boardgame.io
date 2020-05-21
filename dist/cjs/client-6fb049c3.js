@@ -320,6 +320,11 @@ var _ClientImpl = /*#__PURE__*/function () {
       return this.initialState;
     }
   }, {
+    key: "getLatency",
+    value: function getLatency() {
+      return this.transport.latency;
+    }
+  }, {
     key: "getState",
     value: function getState() {
       var state = this.store.getState();
