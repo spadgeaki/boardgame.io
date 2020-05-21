@@ -311,6 +311,10 @@ class _ClientImpl {
     return this.initialState;
   }
 
+  getLatency() {
+    return this.transport.latency;
+  }
+
   getState() {
     let state = this.store.getState();
 
