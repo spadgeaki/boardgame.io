@@ -42,6 +42,7 @@ export class SocketIOTransport extends Transport {
     this.socket = socket;
     this.socketOpts = socketOpts;
     this.isConnected = false;
+    this.heartbeat = null;
     this.callback = () => {};
     this.gameMetadataCallback = () => {};
   }
@@ -104,6 +105,28 @@ export class SocketIOTransport extends Transport {
 
     // Initial sync to get game state.
     this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+
+    // Server pings all clients every 10 seconds
+    // we save the date and client check every second
+    this.socket.on('heartbeat', gameID => {
+      if (gameID == this.gameID) {
+        this.heartbeat = new Date().getTime();
+      }
+    });
+
+    // ping - client sends to server
+    this.socket.on('ping', () => {
+      console.log('client/transport/socket.io ping');
+    });
+    // pong is server response with latency
+    this.socket.on('pong', latency => {
+      console.log('client/transport/socket.io ping', latency);
+    });
+
+    // Error catch
+    this.socket.on('error', e => {
+      console.log('client/transport/socket.io error', e);
+    });
 
     // Keep track of connection status.
     this.socket.on('connect', () => {

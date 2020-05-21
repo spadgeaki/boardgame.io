@@ -303,6 +303,9 @@ export class Master {
       logging.error(
         `invalid stateID, was=[${stateID}], expected=[${state._stateID}]`
       );
+
+      // resync?
+      this.onSync(gameID, playerID, Object.keys(metadata.players).length)
       return;
     }
 
