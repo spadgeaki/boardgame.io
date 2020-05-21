@@ -97,6 +97,7 @@ export class SocketIOTransport extends Transport {
     // and requests the current game state.
     this.socket.on('sync', (gameID, syncInfo) => {
       if (gameID == this.gameID) {
+        console.log('client/transport/socket.io sync');
         const action = ActionCreators.sync(syncInfo);
         this.gameMetadataCallback(syncInfo.filteredMetadata);
         this.store.dispatch(action);
