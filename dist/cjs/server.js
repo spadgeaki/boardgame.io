@@ -2807,6 +2807,8 @@ class Master {
         }
         if (state._stateID !== stateID) {
             error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
+            // resync?
+            this.onSync(gameID, playerID, Object.keys(metadata.players).length);
             return;
         }
         // Update server's version of the store.

@@ -9918,6 +9918,8 @@ class Master {
         }
         if (state._stateID !== stateID) {
             error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
+            // resync?
+            this.onSync(gameID, playerID, Object.keys(metadata.players).length);
             return;
         }
         // Update server's version of the store.
@@ -10464,6 +10466,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
     _this.socket = socket;
     _this.socketOpts = socketOpts;
     _this.isConnected = false;
+    _this.heartbeat = null;
 
     _this.callback = function () {};
 
@@ -10534,7 +10537,26 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
         }
       }); // Initial sync to get game state.
 
-      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers); // Keep track of connection status.
+      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers); // Server pings all clients every 10 seconds
+      // we save the date and client check every second
+
+      this.socket.on('heartbeat', function (gameID) {
+        if (gameID == _this2.gameID) {
+          _this2.heartbeat = new Date().getTime();
+        }
+      }); // ping - client sends to server
+
+      this.socket.on('ping', function () {
+        console.log('client/transport/socket.io ping');
+      }); // pong is server response with latency
+
+      this.socket.on('pong', function (latency) {
+        console.log('client/transport/socket.io ping', latency);
+      }); // Error catch
+
+      this.socket.on('error', function (e) {
+        console.log('client/transport/socket.io error', e);
+      }); // Keep track of connection status.
 
       this.socket.on('connect', function () {
         _this2.isConnected = true;

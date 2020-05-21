@@ -16,8 +16,8 @@ var React = _interopDefault(require('react'));
 var PropTypes = _interopDefault(require('prop-types'));
 var Cookies = _interopDefault(require('react-cookies'));
 require('./base-bdd9c13b.js');
-var socketio = require('./socketio-4af967a2.js');
-require('./master-b02d3587.js');
+var socketio = require('./socketio-2dac778b.js');
+require('./master-1103d8a3.js');
 require('socket.io-client');
 
 /**

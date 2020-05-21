@@ -3,4 +3,4 @@ import 'redux';
 import 'immer';
 import './initialize-d5f56b08.js';
 import './base-c99f5be2.js';
-export { M as Master } from './master-90b3be4f.js';
+export { M as Master } from './master-39ebec79.js';
