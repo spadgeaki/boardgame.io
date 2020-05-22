@@ -537,6 +537,12 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
 
         _this2.callback();
       });
+      this.socket.on('reconnect', function (attemptNumber) {
+        console.log('client/transport/socket.io reconnect attemptNumber:', attemptNumber);
+        _this2.isConnected = true;
+
+        _this2.callback();
+      });
     }
     /**
      * Disconnect from the server.

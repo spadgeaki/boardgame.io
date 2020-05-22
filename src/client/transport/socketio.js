@@ -43,8 +43,8 @@ export class SocketIOTransport extends Transport {
     this.socketOpts = socketOpts;
     this.isConnected = false;
     this.latency = -1;
-    this.callback = () => {};
-    this.gameMetadataCallback = () => {};
+    this.callback = () => { };
+    this.gameMetadataCallback = () => { };
   }
 
   /**
@@ -131,6 +131,12 @@ export class SocketIOTransport extends Transport {
       this.isConnected = false;
       this.callback();
     });
+    this.socket.on('reconnect', attemptNumber => {
+      console.log('client/transport/socket.io reconnect attemptNumber:', attemptNumber);
+      this.isConnected = true;
+      this.callback();
+    });
+
   }
 
   /**
