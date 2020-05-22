@@ -304,6 +304,7 @@ export class Master {
         `invalid stateID, was=[${stateID}], expected=[${state._stateID}]`
       );
 
+      console.log("try resync! client gameID", gameID, "playerID", playerID)
       // resync?
       this.onSync(gameID, playerID, Object.keys(metadata.players).length)
       return;
@@ -371,6 +372,7 @@ export class Master {
    * Returns the latest game state and the entire log.
    */
   async onSync(gameID: string, playerID: string, numPlayers: number) {
+    console.log("onSync client gameID", gameID, "playerID", playerID)
     const key = gameID;
 
     let state: State;

@@ -9923,6 +9923,7 @@ class Master {
         }
         if (state._stateID !== stateID) {
             error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
+            console.log("try resync! client gameID", gameID, "playerID", playerID);
             // resync?
             this.onSync(gameID, playerID, Object.keys(metadata.players).length);
             return;
@@ -9980,6 +9981,7 @@ class Master {
      * Returns the latest game state and the entire log.
      */
     async onSync(gameID, playerID, numPlayers) {
+        console.log("onSync client gameID", gameID, "playerID", playerID);
         const key = gameID;
         let state;
         let initialState;
