@@ -539,10 +539,18 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
       });
       this.socket.on('reconnect', function (attemptNumber) {
         console.log('client/transport/socket.io reconnect attemptNumber:', attemptNumber);
+
+        _this2.resync(attemptNumber);
+
         _this2.isConnected = true;
 
         _this2.callback();
       });
+    }
+  }, {
+    key: "resync",
+    value: function resync(attemptNumber) {
+      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
     }
     /**
      * Disconnect from the server.
