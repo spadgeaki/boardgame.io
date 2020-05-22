@@ -133,10 +133,16 @@ export class SocketIOTransport extends Transport {
     });
     this.socket.on('reconnect', attemptNumber => {
       console.log('client/transport/socket.io reconnect attemptNumber:', attemptNumber);
+
+      this.resync();
+
       this.isConnected = true;
       this.callback();
     });
+  }
 
+  resync() {
+    this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
   }
 
   /**
