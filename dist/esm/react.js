@@ -5,12 +5,12 @@ import './Debug-0bba361b.js';
 import 'flatted';
 import { M as MCTSBot } from './ai-6331d9a0.js';
 import './initialize-d5f56b08.js';
-import { C as Client$1 } from './client-d47978e1.js';
+import { C as Client$1 } from './client-ac3e86d5.js';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Cookies from 'react-cookies';
 import './base-c99f5be2.js';
-import { S as SocketIO, L as Local } from './socketio-7e5c8350.js';
+import { S as SocketIO, L as Local } from './socketio-8d779508.js';
 import './master-c46a18ce.js';
 import 'socket.io-client';
 

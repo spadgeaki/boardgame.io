@@ -11,12 +11,12 @@ require('./Debug-a7342d47.js');
 require('flatted');
 var ai = require('./ai-e69874bf.js');
 require('./initialize-608b1c6b.js');
-var client = require('./client-6fb049c3.js');
+var client = require('./client-429cfaee.js');
 var React = _interopDefault(require('react'));
 var PropTypes = _interopDefault(require('prop-types'));
 var Cookies = _interopDefault(require('react-cookies'));
 require('./base-bdd9c13b.js');
-var socketio = require('./socketio-096da7ac.js');
+var socketio = require('./socketio-e166fc4e.js');
 require('./master-a4f8a925.js');
 require('socket.io-client');
 

@@ -9200,9 +9200,12 @@ var _ClientImpl = /*#__PURE__*/function () {
       return this.initialState;
     }
   }, {
-    key: "getLatency",
-    value: function getLatency() {
-      return this.transport.latency;
+    key: "getConnectionStatus",
+    value: function getConnectionStatus() {
+      return {
+        latency: this.transport.latency,
+        status: this.transport.status
+      };
     }
   }, {
     key: "getState",
@@ -9246,8 +9249,10 @@ var _ClientImpl = /*#__PURE__*/function () {
       });
 
       var isConnected = this.transport.isConnected;
+      var connection = this.getConnectionStatus();
       ret = _objectSpread2(_objectSpread2({}, ret), {}, {
-        isConnected: isConnected
+        isConnected: isConnected,
+        connection: connection
       });
       return ret;
     }
@@ -10468,6 +10473,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
     _this.socketOpts = socketOpts;
     _this.isConnected = false;
     _this.latency = -1;
+    _this.status = 'initial';
 
     _this.callback = function () {};
 
@@ -10536,10 +10542,13 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
           _this2.gameMetadataCallback(syncInfo.filteredMetadata);
 
           _this2.store.dispatch(action);
+
+          _this2.status = 'synced';
         }
       }); // Initial sync to get game state.
 
-      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers); // ping - client sends to server
+      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+      this.status = 'syncing'; // ping - client sends to server
 
       this.socket.on('ping', function () {
         console.log('client/transport/socket.io ping');
@@ -10577,7 +10586,13 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
   }, {
     key: "resync",
     value: function resync(attemptNumber) {
-      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+      var action = reset(null);
+      this.store.dispatch(action);
+
+      if (this.socket) {
+        this.status = 'syncing';
+        this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+      }
     }
     /**
      * Disconnect from the server.

@@ -1,7 +1,9 @@
-import { A as ActionCreators, _ as _createClass, k as _objectSpread2, a as _classCallCheck, P as ProcessGameConfig, C as CreateGameReducer, r as reset, u as undo, l as redo, n as SYNC, U as UPDATE, o as _toConsumableArray, R as RESET, G as GAME_EVENT, M as MAKE_MOVE } from './reducer-fbf421a2.js';
-import { compose, applyMiddleware, createStore } from 'redux';
-import { D as Debug } from './Debug-0bba361b.js';
-import { I as InitializeGame } from './initialize-d5f56b08.js';
+'use strict';
+
+var reducer = require('./reducer-b4f65523.js');
+var redux = require('redux');
+var Debug = require('./Debug-a7342d47.js');
+var initialize = require('./initialize-608b1c6b.js');
 
 /**
  * createDispatchers
@@ -24,7 +26,7 @@ function createDispatchers(storeActionType, innerActionNames, store, playerID, c
         args[_key] = arguments[_key];
       }
 
-      store.dispatch(ActionCreators[storeActionType](name, args, assumedPlayerID, credentials));
+      store.dispatch(reducer.ActionCreators[storeActionType](name, args, assumedPlayerID, credentials));
     };
 
     return dispatchers;
@@ -54,9 +56,9 @@ var _ClientImpl = /*#__PURE__*/function () {
         credentials = _ref.credentials,
         enhancer = _ref.enhancer;
 
-    _classCallCheck(this, _ClientImpl);
+    reducer._classCallCheck(this, _ClientImpl);
 
-    this.game = ProcessGameConfig(game);
+    this.game = reducer.ProcessGameConfig(game);
     this.playerID = playerID;
     this.gameID = gameID;
     this.credentials = credentials;
@@ -65,7 +67,7 @@ var _ClientImpl = /*#__PURE__*/function () {
     this.gameStateOverride = null;
     this.subscribers = {};
     this._running = false;
-    this.reducer = CreateGameReducer({
+    this.reducer = reducer.CreateGameReducer({
       game: this.game,
       isClient: multiplayer !== undefined,
       numPlayers: numPlayers
@@ -73,22 +75,22 @@ var _ClientImpl = /*#__PURE__*/function () {
     this.initialState = null;
 
     if (!multiplayer) {
-      this.initialState = InitializeGame({
+      this.initialState = initialize.InitializeGame({
         game: this.game,
         numPlayers: numPlayers
       });
     }
 
     this.reset = function () {
-      _this.store.dispatch(reset(_this.initialState));
+      _this.store.dispatch(reducer.reset(_this.initialState));
     };
 
     this.undo = function () {
-      _this.store.dispatch(undo(playerID, credentials));
+      _this.store.dispatch(reducer.undo(playerID, credentials));
     };
 
     this.redo = function () {
-      _this.store.dispatch(redo(playerID, credentials));
+      _this.store.dispatch(reducer.redo(playerID, credentials));
     };
 
     this.store = null;
@@ -110,21 +112,21 @@ var _ClientImpl = /*#__PURE__*/function () {
           var state = store.getState();
 
           switch (action.type) {
-            case MAKE_MOVE:
-            case GAME_EVENT:
+            case reducer.MAKE_MOVE:
+            case reducer.GAME_EVENT:
               {
                 var deltalog = state.deltalog;
-                _this.log = [].concat(_toConsumableArray(_this.log), _toConsumableArray(deltalog));
+                _this.log = [].concat(reducer._toConsumableArray(_this.log), reducer._toConsumableArray(deltalog));
                 break;
               }
 
-            case RESET:
+            case reducer.RESET:
               {
                 _this.log = [];
                 break;
               }
 
-            case UPDATE:
+            case reducer.UPDATE:
               {
                 var id = -1;
 
@@ -141,11 +143,11 @@ var _ClientImpl = /*#__PURE__*/function () {
                 _deltalog = _deltalog.filter(function (l) {
                   return l._stateID > id;
                 });
-                _this.log = [].concat(_toConsumableArray(_this.log), _toConsumableArray(_deltalog));
+                _this.log = [].concat(reducer._toConsumableArray(_this.log), reducer._toConsumableArray(_deltalog));
                 break;
               }
 
-            case SYNC:
+            case reducer.SYNC:
               {
                 _this.initialState = action.initialState;
                 _this.log = action.log || [];
@@ -195,12 +197,12 @@ var _ClientImpl = /*#__PURE__*/function () {
     };
 
     if (enhancer !== undefined) {
-      enhancer = compose(applyMiddleware(SubscriptionMiddleware, TransportMiddleware, LogMiddleware), enhancer);
+      enhancer = redux.compose(redux.applyMiddleware(SubscriptionMiddleware, TransportMiddleware, LogMiddleware), enhancer);
     } else {
-      enhancer = applyMiddleware(SubscriptionMiddleware, TransportMiddleware, LogMiddleware);
+      enhancer = redux.applyMiddleware(SubscriptionMiddleware, TransportMiddleware, LogMiddleware);
     }
 
-    this.store = createStore(this.reducer, this.initialState, enhancer);
+    this.store = redux.createStore(this.reducer, this.initialState, enhancer);
     this.transport = {
       isConnected: true,
       onAction: function onAction() {},
@@ -233,7 +235,7 @@ var _ClientImpl = /*#__PURE__*/function () {
     this._debugPanel = null;
   }
 
-  _createClass(_ClientImpl, [{
+  reducer._createClass(_ClientImpl, [{
     key: "notifySubscribers",
     value: function notifySubscribers() {
       var _this2 = this;
@@ -256,7 +258,7 @@ var _ClientImpl = /*#__PURE__*/function () {
       var debugImpl = null;
 
       if (process.env.NODE_ENV !== 'production') {
-        debugImpl = Debug;
+        debugImpl = Debug.Debug;
       }
 
       if (this.debug && this.debug.impl) {
@@ -318,9 +320,12 @@ var _ClientImpl = /*#__PURE__*/function () {
       return this.initialState;
     }
   }, {
-    key: "getLatency",
-    value: function getLatency() {
-      return this.transport.latency;
+    key: "getConnectionStatus",
+    value: function getConnectionStatus() {
+      return {
+        latency: this.transport.latency,
+        status: this.transport.status
+      };
     }
   }, {
     key: "getState",
@@ -357,15 +362,17 @@ var _ClientImpl = /*#__PURE__*/function () {
 
       var G = this.game.playerView(state.G, state.ctx, this.playerID); // Combine into return value.
 
-      var ret = _objectSpread2(_objectSpread2({}, state), {}, {
+      var ret = reducer._objectSpread2(reducer._objectSpread2({}, state), {}, {
         isActive: isActive,
         G: G,
         log: this.log
       });
 
       var isConnected = this.transport.isConnected;
-      ret = _objectSpread2(_objectSpread2({}, ret), {}, {
-        isConnected: isConnected
+      var connection = this.getConnectionStatus();
+      ret = reducer._objectSpread2(reducer._objectSpread2({}, ret), {}, {
+        isConnected: isConnected,
+        connection: connection
       });
       return ret;
     }
@@ -425,4 +432,4 @@ function Client(opts) {
   return new _ClientImpl(opts);
 }
 
-export { Client as C };
+exports.Client = Client;
