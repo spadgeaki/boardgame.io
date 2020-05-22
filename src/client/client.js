@@ -28,7 +28,7 @@ function createDispatchers(
   multiplayer
 ) {
   return innerActionNames.reduce((dispatchers, name) => {
-    dispatchers[name] = function(...args) {
+    dispatchers[name] = function (...args) {
       let assumedPlayerID = playerID;
 
       // In singleplayer mode, if the client does not have a playerID
@@ -206,13 +206,13 @@ class _ClientImpl {
 
     this.transport = {
       isConnected: true,
-      onAction: () => {},
-      subscribe: () => {},
-      subscribeGameMetadata: _metadata => {}, // eslint-disable-line no-unused-vars
-      connect: () => {},
-      disconnect: () => {},
-      updateGameID: () => {},
-      updatePlayerID: () => {},
+      onAction: () => { },
+      subscribe: () => { },
+      subscribeGameMetadata: _metadata => { }, // eslint-disable-line no-unused-vars
+      connect: () => { },
+      disconnect: () => { },
+      updateGameID: () => { },
+      updatePlayerID: () => { },
     };
 
     if (multiplayer) {
@@ -311,8 +311,11 @@ class _ClientImpl {
     return this.initialState;
   }
 
-  getLatency() {
-    return this.transport.latency;
+  getConnectionStatus() {
+    return {
+      latency: this.transport.latency,
+      status: this.transport.status,
+    };
   }
 
   getState() {
@@ -363,7 +366,9 @@ class _ClientImpl {
     let ret = { ...state, isActive, G, log: this.log };
 
     const isConnected = this.transport.isConnected;
-    ret = { ...ret, isConnected };
+    const connection = this.getConnectionStatus();
+
+    ret = { ...ret, isConnected, connection };
 
     return ret;
   }

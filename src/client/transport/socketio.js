@@ -43,6 +43,7 @@ export class SocketIOTransport extends Transport {
     this.socketOpts = socketOpts;
     this.isConnected = false;
     this.latency = -1;
+    this.status = 'initial';
     this.callback = () => { };
     this.gameMetadataCallback = () => { };
   }
@@ -101,11 +102,13 @@ export class SocketIOTransport extends Transport {
         const action = ActionCreators.sync(syncInfo);
         this.gameMetadataCallback(syncInfo.filteredMetadata);
         this.store.dispatch(action);
+        this.status = 'synced';
       }
     });
 
     // Initial sync to get game state.
     this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+    this.status = 'syncing';
 
     // ping - client sends to server
     this.socket.on('ping', () => {
@@ -142,7 +145,13 @@ export class SocketIOTransport extends Transport {
   }
 
   resync(attemptNumber) {
-    this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+    const action = ActionCreators.reset(null);
+    this.store.dispatch(action);
+
+    if (this.socket) {
+      this.status = 'syncing';
+      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+    }
   }
 
   /**
