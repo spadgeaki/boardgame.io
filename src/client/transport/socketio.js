@@ -158,8 +158,10 @@ export class SocketIOTransport extends Transport {
    * Disconnect from the server.
    */
   disconnect() {
-    this.socket.close();
-    this.socket = null;
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
     this.isConnected = false;
     this.callback();
   }
