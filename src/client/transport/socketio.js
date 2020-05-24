@@ -100,10 +100,10 @@ export class SocketIOTransport extends Transport {
     this.socket.on('sync', (gameID, syncInfo) => {
       if (gameID == this.gameID) {
         console.log('client/transport/socket.io sync');
+        this.status = 'synced';
         const action = ActionCreators.sync(syncInfo);
         this.gameMetadataCallback(syncInfo.filteredMetadata);
         this.store.dispatch(action);
-        this.status = 'synced';
       }
     });
 
@@ -118,10 +118,6 @@ export class SocketIOTransport extends Transport {
         // this.status = 'synced';
       }
     });
-
-    // Initial sync to get game state.
-    this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
-    this.status = 'syncing';
 
     // ping - client sends to server
     this.socket.on('ping', () => {
@@ -143,10 +139,12 @@ export class SocketIOTransport extends Transport {
       this.isConnected = true;
       this.callback();
     });
+
     this.socket.on('disconnect', () => {
       this.isConnected = false;
       this.callback();
     });
+
     this.socket.on('reconnect', attemptNumber => {
       console.log('client/transport/socket.io reconnect attemptNumber:', attemptNumber);
 
@@ -155,19 +153,17 @@ export class SocketIOTransport extends Transport {
       this.isConnected = true;
       this.callback();
     });
+
+    // Initial sync to get game state.
+    this.callSync();
   }
 
-  resync(attemptNumber) {
-    const action = ActionCreators.reset(null);
-    this.store.dispatch(action);
-
-    console.log('client/transport/socket.io resync attempt');
-
+  callSync() {
     if (this.socket) {
       if (this.resyncTimeout) {
-        console.log('client/transport/socket.io resync attempt - BLOCKED');
+        console.log('client/transport/socket.io sync attempt - BLOCKED');
       } else {
-        console.log('client/transport/socket.io resync attempt - PASS');
+        console.log('client/transport/socket.io sync attempt - PASS');
         this.status = 'syncing';
         this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
 
@@ -176,6 +172,15 @@ export class SocketIOTransport extends Transport {
         }, 1000);
       }
     }
+  }
+
+  resync(attemptNumber) {
+    const action = ActionCreators.reset(null);
+    this.store.dispatch(action);
+
+    console.log('client/transport/socket.io resync attempt');
+
+    this.callSync();
   }
 
   /**

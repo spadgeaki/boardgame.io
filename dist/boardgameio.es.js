@@ -10543,13 +10543,12 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
       this.socket.on('sync', function (gameID, syncInfo) {
         if (gameID == _this2.gameID) {
           console.log('client/transport/socket.io sync');
+          _this2.status = 'synced';
           var action = sync(syncInfo);
 
           _this2.gameMetadataCallback(syncInfo.filteredMetadata);
 
           _this2.store.dispatch(action);
-
-          _this2.status = 'synced';
         }
       }); // Called when the client is behind with stateID
       // should reset current game state.
@@ -10561,10 +10560,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
           // this.store.dispatch(action);
           // this.status = 'synced';
         }
-      }); // Initial sync to get game state.
-
-      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
-      this.status = 'syncing'; // ping - client sends to server
+      }); // ping - client sends to server
 
       this.socket.on('ping', function () {
         console.log('client/transport/socket.io ping');
@@ -10597,22 +10593,20 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
         _this2.isConnected = true;
 
         _this2.callback();
-      });
+      }); // Initial sync to get game state.
+
+      this.callSync();
     }
   }, {
-    key: "resync",
-    value: function resync(attemptNumber) {
+    key: "callSync",
+    value: function callSync() {
       var _this3 = this;
-
-      var action = reset(null);
-      this.store.dispatch(action);
-      console.log('client/transport/socket.io resync attempt');
 
       if (this.socket) {
         if (this.resyncTimeout) {
-          console.log('client/transport/socket.io resync attempt - BLOCKED');
+          console.log('client/transport/socket.io sync attempt - BLOCKED');
         } else {
-          console.log('client/transport/socket.io resync attempt - PASS');
+          console.log('client/transport/socket.io sync attempt - PASS');
           this.status = 'syncing';
           this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
           this.resyncTimeout = setTimeout(function () {
@@ -10620,6 +10614,14 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
           }, 1000);
         }
       }
+    }
+  }, {
+    key: "resync",
+    value: function resync(attemptNumber) {
+      var action = reset(null);
+      this.store.dispatch(action);
+      console.log('client/transport/socket.io resync attempt');
+      this.callSync();
     }
     /**
      * Disconnect from the server.

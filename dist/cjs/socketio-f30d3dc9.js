@@ -1,7 +1,11 @@
-import { a as _classCallCheck, k as _objectSpread2, d as _inherits, f as _createSuper, _ as _createClass, s as sync, o as _toConsumableArray, v as update, r as reset } from './reducer-fbf421a2.js';
-import { S as Sync } from './base-c99f5be2.js';
-import { M as Master } from './master-b0734a31.js';
-import io from 'socket.io-client';
+'use strict';
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var reducer = require('./reducer-b4f65523.js');
+var base = require('./base-bdd9c13b.js');
+var master = require('./master-ff61b102.js');
+var io = _interopDefault(require('socket.io-client'));
 
 /*
  * Copyright 2017 The boardgame.io Authors
@@ -13,7 +17,7 @@ import io from 'socket.io-client';
 /**
  * InMemory data storage.
  */
-class InMemory extends Sync {
+class InMemory extends base.Sync {
     /**
      * Creates a new InMemory storage.
      */
@@ -105,7 +109,7 @@ var Transport = function Transport(_ref) {
       gameID = _ref.gameID,
       numPlayers = _ref.numPlayers;
 
-  _classCallCheck(this, Transport);
+  reducer._classCallCheck(this, Transport);
 
   this.store = store;
   this.gameName = gameName || 'default';
@@ -167,7 +171,7 @@ function LocalMaster(_ref) {
     var callback = clientCallbacks[playerID];
 
     if (callback !== undefined) {
-      callback.apply(null, [type].concat(_toConsumableArray(args)));
+      callback.apply(null, [type].concat(reducer._toConsumableArray(args)));
     }
   };
 
@@ -185,16 +189,16 @@ function LocalMaster(_ref) {
     }
   };
 
-  var master = new Master(game, new InMemory(), {
+  var master$1 = new master.Master(game, new InMemory(), {
     send: send,
     sendAll: sendAll
   }, false);
 
-  master.connect = function (gameID, playerID, callback) {
+  master$1.connect = function (gameID, playerID, callback) {
     clientCallbacks[playerID] = callback;
   };
 
-  master.subscribe(function (_ref3) {
+  master$1.subscribe(function (_ref3) {
     var state = _ref3.state,
         gameID = _ref3.gameID;
 
@@ -207,11 +211,11 @@ function LocalMaster(_ref) {
     if (botPlayer !== null) {
       setTimeout(async function () {
         var botAction = await initializedBots[botPlayer].play(state, botPlayer);
-        await master.onUpdate(botAction.action, state._stateID, gameID, botAction.action.payload.playerID);
+        await master$1.onUpdate(botAction.action, state._stateID, gameID, botAction.action.payload.playerID);
       }, 100);
     }
   });
-  return master;
+  return master$1;
 }
 /**
  * Local
@@ -221,9 +225,9 @@ function LocalMaster(_ref) {
  */
 
 var LocalTransport = /*#__PURE__*/function (_Transport) {
-  _inherits(LocalTransport, _Transport);
+  reducer._inherits(LocalTransport, _Transport);
 
-  var _super = _createSuper(LocalTransport);
+  var _super = reducer._createSuper(LocalTransport);
 
   /**
    * Creates a new Mutiplayer instance.
@@ -246,7 +250,7 @@ var LocalTransport = /*#__PURE__*/function (_Transport) {
         gameName = _ref4.gameName,
         numPlayers = _ref4.numPlayers;
 
-    _classCallCheck(this, LocalTransport);
+    reducer._classCallCheck(this, LocalTransport);
 
     _this = _super.call(this, {
       store: store,
@@ -267,13 +271,13 @@ var LocalTransport = /*#__PURE__*/function (_Transport) {
    */
 
 
-  _createClass(LocalTransport, [{
+  reducer._createClass(LocalTransport, [{
     key: "onUpdate",
     value: async function onUpdate(gameID, state, deltalog) {
       var currentState = this.store.getState();
 
       if (gameID == this.gameID && state._stateID >= currentState._stateID) {
-        var action = update(state, deltalog);
+        var action = reducer.update(state, deltalog);
         this.store.dispatch(action);
       }
     }
@@ -286,7 +290,7 @@ var LocalTransport = /*#__PURE__*/function (_Transport) {
     key: "onSync",
     value: function onSync(gameID, syncInfo) {
       if (gameID == this.gameID) {
-        var action = sync(syncInfo);
+        var action = reducer.sync(syncInfo);
         this.store.dispatch(action);
       }
     }
@@ -351,7 +355,7 @@ var LocalTransport = /*#__PURE__*/function (_Transport) {
     key: "updateGameID",
     value: function updateGameID(id) {
       this.gameID = id;
-      var action = reset(null);
+      var action = reducer.reset(null);
       this.store.dispatch(action);
       this.connect();
     }
@@ -364,7 +368,7 @@ var LocalTransport = /*#__PURE__*/function (_Transport) {
     key: "updatePlayerID",
     value: function updatePlayerID(id) {
       this.playerID = id;
-      var action = reset(null);
+      var action = reducer.reset(null);
       this.store.dispatch(action);
       this.connect();
     }
@@ -387,7 +391,7 @@ function Local(opts) {
       localMasters.set(transportOpts.gameKey, master);
     }
 
-    return new LocalTransport(_objectSpread2({
+    return new LocalTransport(reducer._objectSpread2({
       master: master
     }, transportOpts));
   };
@@ -400,9 +404,9 @@ function Local(opts) {
  */
 
 var SocketIOTransport = /*#__PURE__*/function (_Transport) {
-  _inherits(SocketIOTransport, _Transport);
+  reducer._inherits(SocketIOTransport, _Transport);
 
-  var _super = _createSuper(SocketIOTransport);
+  var _super = reducer._createSuper(SocketIOTransport);
 
   /**
    * Creates a new Mutiplayer instance.
@@ -427,7 +431,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
         numPlayers = _ref.numPlayers,
         server = _ref.server;
 
-    _classCallCheck(this, SocketIOTransport);
+    reducer._classCallCheck(this, SocketIOTransport);
 
     _this = _super.call(this, {
       store: store,
@@ -456,7 +460,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
    */
 
 
-  _createClass(SocketIOTransport, [{
+  reducer._createClass(SocketIOTransport, [{
     key: "onAction",
     value: function onAction(state, action) {
       this.socket.emit('update', action, state._stateID, this.gameID, this.playerID);
@@ -496,7 +500,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
         var currentState = _this2.store.getState();
 
         if (gameID == _this2.gameID && state._stateID >= currentState._stateID) {
-          var action = update(state, deltalog);
+          var action = reducer.update(state, deltalog);
 
           _this2.store.dispatch(action);
         }
@@ -506,28 +510,24 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
       this.socket.on('sync', function (gameID, syncInfo) {
         if (gameID == _this2.gameID) {
           console.log('client/transport/socket.io sync');
-          var action = sync(syncInfo);
+          _this2.status = 'synced';
+          var action = reducer.sync(syncInfo);
 
           _this2.gameMetadataCallback(syncInfo.filteredMetadata);
 
           _this2.store.dispatch(action);
-
-          _this2.status = 'synced';
         }
       }); // Called when the client is behind with stateID
       // should reset current game state.
 
       this.socket.on('resync', function (gameID) {
         if (gameID == _this2.gameID) {
-          console.log('client/transport/socket.io resync'); // const action = ActionCreators.sync(syncInfo);
+          console.log('client/transport/socket.io on resync'); // const action = ActionCreators.sync(syncInfo);
           // this.gameMetadataCallback(syncInfo.filteredMetadata);
           // this.store.dispatch(action);
           // this.status = 'synced';
         }
-      }); // Initial sync to get game state.
-
-      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
-      this.status = 'syncing'; // ping - client sends to server
+      }); // ping - client sends to server
 
       this.socket.on('ping', function () {
         console.log('client/transport/socket.io ping');
@@ -560,22 +560,20 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
         _this2.isConnected = true;
 
         _this2.callback();
-      });
+      }); // Initial sync to get game state.
+
+      this.callSync();
     }
   }, {
-    key: "resync",
-    value: function resync(attemptNumber) {
+    key: "callSync",
+    value: function callSync() {
       var _this3 = this;
-
-      var action = reset(null);
-      this.store.dispatch(action);
-      console.log('client/transport/socket.io resync attempt');
 
       if (this.socket) {
         if (this.resyncTimeout) {
-          console.log('client/transport/socket.io resync attempt - BLOCKED');
+          console.log('client/transport/socket.io sync attempt - BLOCKED');
         } else {
-          console.log('client/transport/socket.io resync attempt - PASS');
+          console.log('client/transport/socket.io sync attempt - PASS');
           this.status = 'syncing';
           this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
           this.resyncTimeout = setTimeout(function () {
@@ -583,6 +581,14 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
           }, 1000);
         }
       }
+    }
+  }, {
+    key: "resync",
+    value: function resync(attemptNumber) {
+      var action = reducer.reset(null);
+      this.store.dispatch(action);
+      console.log('client/transport/socket.io resync attempt');
+      this.callSync();
     }
     /**
      * Disconnect from the server.
@@ -622,7 +628,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
     key: "updateGameID",
     value: function updateGameID(id) {
       this.gameID = id;
-      var action = reset(null);
+      var action = reducer.reset(null);
       this.store.dispatch(action);
 
       if (this.socket) {
@@ -638,7 +644,7 @@ var SocketIOTransport = /*#__PURE__*/function (_Transport) {
     key: "updatePlayerID",
     value: function updatePlayerID(id) {
       this.playerID = id;
-      var action = reset(null);
+      var action = reducer.reset(null);
       this.store.dispatch(action);
 
       if (this.socket) {
@@ -655,11 +661,12 @@ function SocketIO() {
       socketOpts = _ref2.socketOpts;
 
   return function (transportOpts) {
-    return new SocketIOTransport(_objectSpread2({
+    return new SocketIOTransport(reducer._objectSpread2({
       server: server,
       socketOpts: socketOpts
     }, transportOpts));
   };
 }
 
-export { Local as L, SocketIO as S };
+exports.Local = Local;
+exports.SocketIO = SocketIO;
