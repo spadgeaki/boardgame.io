@@ -12,7 +12,7 @@ import { ServerOptions as SocketOptions } from 'socket.io';
 import { ServerOptions as HttpsOptions } from 'https';
 
 const PING_TIMEOUT = 10000;
-const PING_INTERVAL = 10000;
+const PING_INTERVAL = 30000;
 
 /**
  * API that's exposed by SocketIO for the Master to send

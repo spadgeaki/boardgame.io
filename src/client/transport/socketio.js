@@ -44,6 +44,7 @@ export class SocketIOTransport extends Transport {
     this.isConnected = false;
     this.latency = -1;
     this.status = 'initial';
+    this.resyncTimeout = null;
     this.callback = () => { };
     this.gameMetadataCallback = () => { };
   }
@@ -106,6 +107,18 @@ export class SocketIOTransport extends Transport {
       }
     });
 
+    // Called when the client is behind with stateID
+    // should reset current game state.
+    this.socket.on('resync', gameID => {
+      if (gameID == this.gameID) {
+        console.log('client/transport/socket.io on resync');
+        // const action = ActionCreators.sync(syncInfo);
+        // this.gameMetadataCallback(syncInfo.filteredMetadata);
+        // this.store.dispatch(action);
+        // this.status = 'synced';
+      }
+    });
+
     // Initial sync to get game state.
     this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
     this.status = 'syncing';
@@ -148,9 +161,20 @@ export class SocketIOTransport extends Transport {
     const action = ActionCreators.reset(null);
     this.store.dispatch(action);
 
+    console.log('client/transport/socket.io resync attempt');
+
     if (this.socket) {
-      this.status = 'syncing';
-      this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+      if (this.resyncTimeout) {
+        console.log('client/transport/socket.io resync attempt - BLOCKED');
+      } else {
+        console.log('client/transport/socket.io resync attempt - PASS');
+        this.status = 'syncing';
+        this.socket.emit('sync', this.gameID, this.playerID, this.numPlayers);
+
+        this.resyncTimeout = setTimeout(() => {
+          this.resyncTimeout = null;
+        }, 1000);
+      }
     }
   }
 

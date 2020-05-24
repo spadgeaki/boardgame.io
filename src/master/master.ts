@@ -304,9 +304,17 @@ export class Master {
         `invalid stateID, was=[${stateID}], expected=[${state._stateID}]`
       );
 
-      console.log("try resync! client gameID", gameID, "playerID", playerID)
+      console.log("Resync? client gameID", gameID, "playerID", playerID)
+
       // resync?
-      this.onSync(gameID, playerID, Object.keys(metadata.players).length)
+      // this.onSync(gameID, playerID, Object.keys(metadata.players).length)
+
+      this.transportAPI.send({
+        playerID,
+        type: 'resync',
+        args: [gameID],
+      });
+
       return;
     }
 

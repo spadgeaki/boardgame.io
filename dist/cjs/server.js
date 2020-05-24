@@ -2807,9 +2807,14 @@ class Master {
         }
         if (state._stateID !== stateID) {
             error(`invalid stateID, was=[${stateID}], expected=[${state._stateID}]`);
-            console.log("try resync! client gameID", gameID, "playerID", playerID);
+            console.log("Resync? client gameID", gameID, "playerID", playerID);
             // resync?
-            this.onSync(gameID, playerID, Object.keys(metadata.players).length);
+            // this.onSync(gameID, playerID, Object.keys(metadata.players).length)
+            this.transportAPI.send({
+                playerID,
+                type: 'resync',
+                args: [gameID],
+            });
             return;
         }
         // Update server's version of the store.
@@ -3016,7 +3021,7 @@ class Master {
  * https://opensource.org/licenses/MIT.
  */
 const PING_TIMEOUT = 10000;
-const PING_INTERVAL = 10000;
+const PING_INTERVAL = 30000;
 /**
  * API that's exposed by SocketIO for the Master to send
  * information to the clients.
