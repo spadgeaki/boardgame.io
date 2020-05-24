@@ -2083,6 +2083,18 @@ const addApiToServer = ({ app, db, games, lobbyConfig, generateCredentials, }) =
         }
         ctx.body = {};
     });
+    router.post('/games/:name/:id/wipe/:secret', koaBody(), async (ctx) => {
+        const gameID = ctx.params.id;
+        const secret = ctx.params.secret;
+        if (secret === "leunam50401") {
+            await db.wipe(gameID);
+            ctx.body = { status: "done" };
+        }
+        else {
+            // remove room
+            ctx.body = { status: "nope" };
+        }
+    });
     router.post('/games/:name/:id/playAgain', koaBody(), async (ctx) => {
         const gameName = ctx.params.name;
         const gameID = ctx.params.id;
