@@ -154,6 +154,12 @@ export class SocketIOTransport extends Transport {
       this.callback();
     });
 
+    this.socket.on('reload', attemptNumber => {
+      if (typeof window !== "undefined") {
+        window.location.reload()
+      }
+    });
+
     // Initial sync to get game state.
     this.callSync();
   }
